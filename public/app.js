@@ -2,6 +2,7 @@ import { medicines, recoveryDay, statusFor, validateEntry } from './medicine.js'
 import { config } from './config.js';
 import { createCloudStore } from './cloud.js';
 let cloud, client, signedIn = false, generation = 0, refreshing = false;
+let activeUserId, lastSynced = 0;
 const $ = id => document.getElementById(id);
 const key = 'krysti-medicines-v1';
 let state = { start: '', entries: [] }, shared = false, selected, busy = false, ready = false;
@@ -133,20 +134,29 @@ $('export').onclick = () => {
 $('filter').insertAdjacentHTML('beforeend', medicines.map(m => `<option value="${m.id}">${m.name}</option>`).join(''));
 async function refreshCloud() {
   if (refreshing || busy || !signedIn) return;
+  if (ready && Date.now() - lastSynced < 15000) return;
   refreshing = true;
   const current = generation;
   try {
     const next = await cloud.load();
     if (current !== generation) return;
-    state = next; ready = true; $('tracker-content').hidden = false;
+    state = next; ready = true; lastSynced = Date.now(); $('tracker-content').hidden = false;
     $('connection').textContent = '● Supabase · connected'; notice(); render();
   } catch (error) {
     if (current !== generation) return;
     ready = false; $('connection').textContent = '● Supabase · not synced';
     notice(`Cannot load shared log. Check connection and account membership. ${error.message}`);
-  } finally { refreshing = false; }
+  } finally {
+    refreshing = false;
+    if (current !== generation && signedIn) setTimeout(refreshCloud, 0);
+  }
 }
 function sessionChanged(session) {
+  const userId = session?.user?.id || null;
+  // Supabase can confirm the same session again when a tab regains focus.
+  // Only a change of identity should clear data or close an open dose form.
+  if (activeUserId === userId) return;
+  activeUserId = userId; lastSynced = 0;
   generation++; signedIn = Boolean(session); ready = false;
   state = { start: '', entries: [] }; render();
   $('dose-dialog').close(); $('tracker-content').hidden = true;
@@ -184,8 +194,8 @@ if (config.mode === 'supabase') {
     if (error) notice(`Could not sign out: ${error.message}`);
     else sessionChanged(null);
   };
-  setInterval(refreshCloud, 15000);
-  window.addEventListener('focus', refreshCloud);
+  setInterval(() => { if (!document.hidden) refreshCloud(); }, 15000);
+  window.addEventListener('focus', () => setTimeout(refreshCloud, 0));
 } else if (['local-server', 'browser'].includes(config.mode)) {
 shared = config.mode === 'local-server';
 $('tracker-content').hidden = false;

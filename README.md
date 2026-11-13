@@ -46,7 +46,7 @@ Open http://127.0.0.1:3000. No dependency installation/build is needed. The brow
 2. Add a clearly labeled test dose. Sign in from another browser/private window and verify it appears there. Remove the test dose afterward.
 3. Sign out and verify history disappears. A user not in tracker_members must fail to load the log.
 
-The app refreshes every 15 seconds and when the window regains focus. Browser storage remembers login tokens, not a separate medicine log. Sign out on shared devices. There are no offline writes. If a save has an uncertain outcome, check history before retrying. Saves insert/delete individual records rather than replacing another phone's entire log.
+The app refreshes every 15 seconds while visible. Returning to the tab refreshes only if the last successful sync is at least 15 seconds old, without clearing the displayed log. Browser storage remembers login tokens, not a separate medicine log. Sign out on shared devices. There are no offline writes. If a save has an uncertain outcome, check history before retrying. Saves insert/delete individual records rather than replacing another phone's entire log.
 
 ## 4. Deploy to GitHub Pages
 
@@ -56,7 +56,7 @@ The app refreshes every 15 seconds and when the window regains focus. Browser st
 4. Open the successful deployment URL on both phones and sign in. Add it to the home screen as a browser shortcut if desired.
 5. Set Supabase Authentication → URL Configuration → Site URL to the full Pages URL including the repository path. Password login needs no redirect, but this sets the destination for future email flows.
 
-Only [public](./public) is published; the Node server is not deployed. The interface and medication definitions are public; dose history requires authorized login. Configuration changes require redeployment. This scaffold does not automatically create a Supabase project or deploy the site.
+The workflow builds [public](./public) into versioned assets in the ignored dist directory and publishes that output; the Node server is not deployed. The interface and medication definitions are public; dose history requires authorized login. Configuration changes require redeployment. This scaffold does not automatically create a Supabase project or deploy the site.
 
 ## Troubleshooting and maintenance
 
@@ -110,3 +110,10 @@ The dose-time shortcuts highlight the selected option. Now is selected when the 
 ## Updating an existing Supabase project: MiraLAX
 
 Run [002_add_miralax.sql](./supabase/migrations/002_add_miralax.sql) in SQL Editor after migration 001, before deploying. New projects using the current setup script need neither migration. Apply migrations in order; do not rerun older migrations after newer ones.
+
+
+## Deploying updates and avoiding stale assets
+
+Push changes, then start a new **Run workflow** on main. **Re-run jobs** uses the original run's commit. The workflow now tests and builds the app before deploying; each build gives all JavaScript modules and styles a shared content-versioned URL so browsers do not mix old medication definitions with new interface code. After the first deployment with this change, reload the page (hard-refresh once if the old HTML is cached).
+
+Repeated auth events for the same user keep the current log and open forms intact. Only sign-out or a different account clears them. Settings and the first history page are fetched concurrently. Network latency or an inactive Supabase project can still affect the first load.

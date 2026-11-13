@@ -2,12 +2,19 @@ export function createCloudStore(client) {
   const check = result => { if (result.error) throw new Error(result.error.message); return result.data; };
   return {
     async load() {
-      const settings = check(await client.from('tracker_settings').select('start').eq('id', 1).single());
+      const page = offset => client.from('dose_entries').select('id,medicine,dose,at,note').order('at', { ascending: false }).order('id').range(offset, offset + 499);
+      const [settingsResult, firstPage] = await Promise.all([
+        client.from('tracker_settings').select('start').eq('id', 1).single(),
+        page(0)
+      ]);
+      const settings = check(settingsResult);
       const entries = [];
+      let result = firstPage;
       for (let offset = 0; ; offset += 500) {
-        const rows = check(await client.from('dose_entries').select('id,medicine,dose,at,note').order('at', { ascending: false }).order('id').range(offset, offset + 499));
+        const rows = check(result);
         entries.push(...rows.map(row => ({ ...row, at: new Date(row.at).toISOString() })));
         if (rows.length < 500) break;
+        result = await page(offset + 500);
       }
       return { start: settings.start || '', entries };
     },
