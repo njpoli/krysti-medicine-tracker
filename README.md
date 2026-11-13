@@ -30,7 +30,7 @@ export const config = {
 };
 ```
 
-These public connection settings may be committed. A legacy anon key also works. **Never publish an sb_secret_ key, service_role key, database password, or login password.** Login and database policies protect data, not secrecy of the publishable key. Use the standard supabase.co project URL. Missing settings show a setup message; cloud mode never falls back to a separate local log.
+These public connection settings may be committed. A legacy anon key also works. **Never publish an sb*secret* key, service_role key, database password, or login password.** Login and database policies protect data, not secrecy of the publishable key. Use the standard supabase.co project URL. Missing settings show a setup message; cloud mode never falls back to a separate local log.
 
 ## 3. Run and verify locally
 
@@ -77,14 +77,14 @@ Set mode in [public/config.js](./public/config.js) to local-server for the origi
 
 [medicine.js](./public/medicine.js) transcribes your supplied instructions, not a medically validated regimen.
 
-| Medicine | Instructions |
-| --- | --- |
-| Oxycodone | 1–2 tablets (5–10 mg) every 4 hours to start; wean as able; 1–2 weeks. Call weekdays during business hours if more is needed. |
-| Ibuprofen | 800 mg every 6 hours, first 3 days only; stagger with Tylenol. |
-| Tylenol | 500 mg every 6 hours, first 3 days only; stagger with ibuprofen. |
-| Gabapentin | 300 mg at night, first 3 nights only. |
-| Aspirin | 325 mg once daily; no duration supplied. |
-| Zofran | 4 mg every 8 hours as needed for nausea. |
+| Medicine   | Instructions                                                                                                                  |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Oxycodone  | 1–2 tablets (5–10 mg) every 4 hours to start; wean as able; 1–2 weeks. Call weekdays during business hours if more is needed. |
+| Ibuprofen  | 800 mg every 6 hours, first 3 days only; stagger with Tylenol.                                                                |
+| Tylenol    | 500 mg every 6 hours, first 3 days only; stagger with ibuprofen.                                                              |
+| Gabapentin | 300 mg at night, first 3 nights only.                                                                                         |
+| Aspirin    | 325 mg once daily; no duration supplied.                                                                                      |
+| Zofran     | 4 mg every 8 hours as needed for nausea.                                                                                      |
 
 Recovery uses calendar days in the viewing phone's timezone; use matching timezones. The first three nights are represented by the first three calendar days. Daily/nightly medicines show the last dose without assuming a clock time. Interval labels are not clearance to take medicine. No automatic staggering, interaction checks, daily-limit calculations, or background notifications are included.
 
@@ -98,3 +98,15 @@ npm run check
 Automated checks do not replace the live two-browser and database access checks above. No Supabase credentials are bundled.
 
 References: [Password sign-in](https://supabase.com/docs/reference/javascript/auth-signinwithpassword), [row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+## Updating an existing Supabase project: supplements
+
+Before deploying the version with Calcium, Vitamin C, and Vitamin D, run [001_add_supplements.sql](./supabase/migrations/001_add_supplements.sql) in Supabase SQL Editor. It expands the allowed medicines without removing history or changing access rules. Do not rerun the full setup script on an existing project. New projects using the current setup script already include the supplements.
+
+All three supplements are once daily with **Dosage unknown**; no strength or pill count is assumed. They appear in dose logging, daily-dose warnings, history filters, and exports.
+
+The dose-time shortcuts highlight the selected option. Now is selected when the form opens. Manually editing the date or time clears the shortcut selection. Shortcuts set the displayed timestamp when clicked; that timestamp stays fixed until changed.
+
+## Updating an existing Supabase project: MiraLAX
+
+Run [002_add_miralax.sql](./supabase/migrations/002_add_miralax.sql) in SQL Editor after migration 001, before deploying. New projects using the current setup script need neither migration. Apply migrations in order; do not rerun older migrations after newer ones.

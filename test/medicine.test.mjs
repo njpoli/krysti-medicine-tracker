@@ -1,6 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { medicines, recoveryDay, statusFor, validateEntry } from '../public/medicine.js';
+test('MiraLAX does not invent a prescribed interval and accepts actual logged dose', () => {
+  const med = medicines.find(m => m.id === 'miralax');
+  const entry = { medicine: med.id, dose: '17 g', at: new Date().toISOString(), note: '' };
+  assert.equal(validateEntry(entry), true);
+  assert.equal(validateEntry({ ...entry, dose: 'Dosage unknown' }), true);
+  const status = statusFor(med, [entry], '2026-11-12');
+  assert.equal(status.next, undefined);
+  assert.match(status.label, /Confirm dose/);
+});
 test('calendar recovery days and three-day course cutoff', () => {
   assert.equal(recoveryDay('2026-11-12', new Date(2026, 10, 13, 1)), 2);
   assert.equal(recoveryDay('', new Date()), null);

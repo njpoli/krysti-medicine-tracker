@@ -20,7 +20,9 @@ create table public.dose_entries (
     (medicine = 'tylenol' and dose = '1 tablet (500 mg)') or
     (medicine = 'gabapentin' and dose = '300 mg') or
     (medicine = 'aspirin' and dose = '1 tablet (325 mg)') or
-    (medicine = 'zofran' and dose = '1 tablet (4 mg)')
+    (medicine = 'zofran' and dose = '1 tablet (4 mg)') or
+    (medicine in ('calcium', 'vitamin-c', 'vitamin-d') and dose = 'Dosage unknown') or
+    (medicine = 'miralax' and dose in ('Dosage unknown', '17 g'))
   )
 );
 create index dose_entries_time on public.dose_entries(at desc, id);

@@ -21,20 +21,26 @@ function previewTime() {
     ? `Recording ${at.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}`
     : 'Choose a date and time.';
 }
-function setTakenTime(date) {
+function selectTimeShortcut(minutes = null) {
+  document.querySelectorAll('[data-minutes]').forEach(button => {
+    button.setAttribute('aria-pressed', String(minutes !== null && button.dataset.minutes === String(minutes)));
+  });
+}
+function setTakenTime(date, shortcut = 0) {
   const localDate = value => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
   $('taken-date').max = localDate(new Date());
   $('taken-date').value = localDate(date);
   $('taken-hour').value = String(date.getHours() % 12 || 12);
   $('taken-minute').value = String(date.getMinutes());
   $('taken-period').value = date.getHours() >= 12 ? 'PM' : 'AM';
+  selectTimeShortcut(shortcut);
   previewTime();
 }
 $('time-shortcuts').onclick = event => {
   const button = event.target.closest('[data-minutes]');
-  if (button) setTakenTime(new Date(Date.now() - Number(button.dataset.minutes) * 60000));
+  if (button) setTakenTime(new Date(Date.now() - Number(button.dataset.minutes) * 60000), Number(button.dataset.minutes));
 };
-for (const id of ['taken-date', 'taken-hour', 'taken-minute', 'taken-period']) $(id).addEventListener('change', previewTime);
+for (const id of ['taken-date', 'taken-hour', 'taken-minute', 'taken-period']) $(id).addEventListener('input', () => { selectTimeShortcut(); previewTime(); });
 async function api(path = '', method = 'GET', body) {
   const response = await fetch(`./api/state${path}`, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store', signal: AbortSignal.timeout(8000) });
   if (!response.ok) throw new Error('Could not reach shared storage. No change was saved. Please retry.');
@@ -84,9 +90,15 @@ function openDose(id) {
   $('dose-form').reset();
   $('dialog-title').textContent = `Log ${selected.name}`;
   $('instructions').textContent = selected.instructions;
+  if (selected.source) {
+    const link = document.createElement('a');
+    link.href = selected.source; link.textContent = ' Official product label';
+    link.target = '_blank'; link.rel = 'noopener noreferrer';
+    $('instructions').append(link);
+  }
   const status = statusFor(selected, state.entries, state.start);
   $('dose-warning').textContent = status.tone === 'waiting' ? `The recorded ${selected.hours}-hour interval has not elapsed. Check the time and discharge instructions before recording another dose.` : status.tone === 'ended' ? 'The initial course has ended. Only record doses actually taken; check any continued use with the care team.' : !state.start ? 'Set your day-1 date to track the initial course.' : '';
-  if (status.last && !selected.hours && new Date(status.last.at).toDateString() === new Date().toDateString()) $('dose-warning').textContent = 'A dose of this daily medicine is already recorded today. Check the log before adding another.';
+  if (status.last && !selected.hours && new Date(status.last.at).toDateString() === new Date().toDateString()) $('dose-warning').textContent = 'A dose of this medicine is already recorded today. Check the log before adding another.';
   $('dose').innerHTML = selected.doses.map(d => `<option>${d}</option>`).join('');
   setTakenTime(new Date());
   $('form-error').textContent = '';
