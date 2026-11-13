@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#142520"><title>Krysti · Medicine tracker</title><link rel="stylesheet" href="./style.css"></head>
+<body>
+  <header><div class="brand"><span class="logo">✚</span> A LITTLE CARE, EVERY DAY</div><div id="connection" class="badge">Connecting…</div></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">RECOVERY COMPANION</p><h1>One dose at a time.</h1><p class="subtitle">Krysti’s medicines, all in one place.</p></div><div class="day"><span id="day">—</span><small>RECOVERY DAY</small></div></section>
+    <div id="notice" role="status" hidden></div>
+    <section id="auth-panel" class="panel" hidden><h2>Sign in to your shared log</h2><p>Use the account created for this tracker.</p><form id="login-form"><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Password<input id="password" type="password" autocomplete="current-password" required></label><button id="login-button" type="submit">Sign in</button></form><p id="auth-error" role="alert"></p></section>
+    <button id="logout" class="secondary" hidden>Sign out</button>
+    <div id="tracker-content" hidden>
+    <section class="setup panel"><div><h2>Your recovery plan</h2><p>Choose the date that counted as day 1. Your instructions said you were on day 2.</p></div><form id="settings"><label>Day 1 date<input type="date" id="start" required></label><button type="submit">Save date</button></form></section>
+    <div class="section-heading"><h2>Medicines</h2><span>Based on your supplied instructions</span></div>
+    <section id="medicines" class="grid" aria-label="Medicines"></section>
+    <p class="guidance">Times track elapsed intervals, not clearance to take a dose. Follow the discharge instructions. Tylenol and ibuprofen are marked to stagger; no starting times are assumed.</p>
+    <section class="timeline panel"><div class="section-heading"><div><p class="eyebrow">THE LITTLE DETAILS</p><h2>Dose history</h2></div><button id="export" class="secondary">Export JSON</button></div><label class="filter">Show medicine<select id="filter"><option value="all">All medicines</option></select></label><div id="history"></div></section>
+    </div>
+    <footer>Made for a little peace of mind. <span id="storage"></span></footer>
+  </main>
+  <dialog id="dose-dialog"><form id="dose-form"><div class="section-heading"><h2 id="dialog-title">Log a dose</h2><button type="button" id="close" class="secondary" aria-label="Close">✕</button></div><p id="instructions"></p><p id="dose-warning" class="warning"></p><label>Dose<select id="dose" required></select></label><fieldset class="time-picker"><legend>When taken</legend>
+  <div id="time-shortcuts" class="time-shortcuts" aria-label="Recent dose times">
+    <button type="button" class="secondary" data-minutes="0">Now</button>
+    <button type="button" class="secondary" data-minutes="15">15 min ago</button>
+    <button type="button" class="secondary" data-minutes="30">30 min ago</button>
+    <button type="button" class="secondary" data-minutes="60">1 hour ago</button>
+  </div>
+  <label>Date<input id="taken-date" type="date" required></label>
+  <div class="time-fields">
+    <label>Hour<select id="taken-hour" required></select></label>
+    <label>Minute<select id="taken-minute" required></select></label>
+    <label>AM / PM<select id="taken-period"><option>AM</option><option>PM</option></select></label>
+  </div>
+  <p id="time-preview" aria-live="polite"></p>
+</fieldset><label>Note <span>(optional)</span><textarea id="note" maxlength="500" placeholder="Anything useful to remember"></textarea></label><p id="form-error" role="alert"></p><button type="submit" id="save-dose">Save dose</button></form></dialog>
+  <script type="module" src="./app.js"></script>
+</body></html>
+

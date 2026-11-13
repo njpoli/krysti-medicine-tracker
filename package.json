@@ -1,0 +1,8 @@
+{
+  "name": "krysti-medicine-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node server.mjs", "test": "node --test", "check": "node --check public/app.js && node --check server.mjs" },
+  "engines": { "node": ">=22" }
+}
