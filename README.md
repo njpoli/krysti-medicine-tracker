@@ -117,3 +117,7 @@ Run [002_add_miralax.sql](./supabase/migrations/002_add_miralax.sql) in SQL Edit
 Push changes, then start a new **Run workflow** on main. **Re-run jobs** uses the original run's commit. The workflow now tests and builds the app before deploying; each build gives all JavaScript modules and styles a shared content-versioned URL so browsers do not mix old medication definitions with new interface code. After the first deployment with this change, reload the page (hard-refresh once if the old HTML is cached).
 
 Repeated auth events for the same user keep the current log and open forms intact. Only sign-out or a different account clears them. Settings and the first history page are fetched concurrently. Network latency or an inactive Supabase project can still affect the first load.
+
+## Updating an existing Supabase project: lower ibuprofen doses
+
+Run all of [003_add_ibuprofen_doses.sql](./supabase/migrations/003_add_ibuprofen_doses.sql) in Supabase SQL Editor after migration 002. It allows 800 mg, 600 mg, 400 mg, and 200 mg while preserving existing history and every other medicine's allowed doses. The constraint replacement is transactional. Do not rerun older migrations afterward, as they restore older dose restrictions. New projects using the current setup script already support these doses.

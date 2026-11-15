@@ -16,7 +16,7 @@ create table public.dose_entries (
   note text not null default '' check (length(note) <= 500),
   constraint valid_dose check (
     (medicine = 'oxycodone' and dose in ('1 tablet (5 mg)', '2 tablets (10 mg)')) or
-    (medicine = 'ibuprofen' and dose = '800 mg') or
+    (medicine = 'ibuprofen' and dose in ('800 mg', '600 mg', '400 mg', '200 mg')) or
     (medicine = 'tylenol' and dose = '1 tablet (500 mg)') or
     (medicine = 'gabapentin' and dose = '300 mg') or
     (medicine = 'aspirin' and dose = '1 tablet (325 mg)') or
