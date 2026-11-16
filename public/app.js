@@ -1,6 +1,8 @@
 import { medicines, recoveryDay, statusFor, validateEntry } from './medicine.js';
 import { config } from './config.js';
 import { createCloudStore } from './cloud.js';
+import { historyPage } from './history.js';
+let historyDay = null;
 let cloud, client, signedIn = false, generation = 0, refreshing = false;
 let activeUserId, lastSynced = 0;
 const $ = id => document.getElementById(id);
@@ -54,7 +56,15 @@ function render() {
     const status = statusFor(m, state.entries, state.start);
     return `<article class="medicine"><p class="kind">${m.kind}${m.days ? ' · first 3 days' : ''}</p><h2>${m.name}</h2><p class="dose">${m.dose}</p><span class="last-label">Last recorded dose</span><div class="last-time">${status.last ? dateTime(status.last.at) : 'Not logged yet'}</div><div class="status ${status.tone}">${escape(status.label)}</div><button data-log="${m.id}">+ Log dose</button></article>`;
   }).join('');
-  const entries = state.entries.filter(e => $('filter').value === 'all' || e.medicine === $('filter').value).sort((a, b) => b.at.localeCompare(a.at));
+  const page = historyPage(state.entries, $('filter').value, historyDay);
+  historyDay = page.day;
+  const entries = page.entries;
+  $('history-nav').hidden = !page.days.length;
+  $('history-date').innerHTML = page.days.map(day => `<option value="${day}">${new Date(`${day}T12:00:00`).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</option>`).join('');
+  $('history-date').value = page.day || '';
+  $('history-older').disabled = page.index >= page.days.length - 1;
+  $('history-newer').disabled = page.index <= 0;
+  $('history-page-info').textContent = page.days.length ? `${entries.length} dose${entries.length === 1 ? '' : 's'} · Day ${page.index + 1} of ${page.days.length}` : '';
   $('history').innerHTML = entries.length ? entries.map(e => `<article class="entry"><time datetime="${escape(e.at)}">${dateTime(e.at)}</time><div class="details"><strong>${escape(medicines.find(m => m.id === e.medicine)?.name || e.medicine)}</strong><p>${escape(e.dose)}</p>${e.note ? `<p>${escape(e.note)}</p>` : ''}</div><button class="secondary" data-delete="${escape(e.id)}" aria-label="Remove ${escape(e.medicine)} dose at ${escape(dateTime(e.at))}">Remove</button></article>`).join('') : '<p class="empty">A fresh start.<br>Your recorded doses will appear here.</p>';
 }
 async function mutate(action, payload) {
@@ -108,7 +118,15 @@ function openDose(id) {
 }
 $('medicines').addEventListener('click', e => { const button = e.target.closest('[data-log]'); if (button) openDose(button.dataset.log); });
 $('close').onclick = () => $('dose-dialog').close();
-$('filter').onchange = render;
+$('filter').onchange = () => { historyDay = null; render(); };
+$('history-date').onchange = () => { historyDay = $('history-date').value; render(); };
+function moveHistory(direction) {
+  const page = historyPage(state.entries, $('filter').value, historyDay);
+  historyDay = page.days[page.index + direction] || page.day;
+  render();
+}
+$('history-older').onclick = () => moveHistory(1);
+$('history-newer').onclick = () => moveHistory(-1);
 $('settings').onsubmit = async e => {
   e.preventDefault();
   if (recoveryDay($('start').value) < 1) return notice('Day 1 cannot be in the future.');

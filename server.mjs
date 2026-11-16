@@ -17,6 +17,7 @@ function save(next) {
 const assets = { '/': ['index.html', 'text/html'], '/index.html': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/medicine.js': ['medicine.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
 assets['/config.js'] = ['config.js', 'text/javascript'];
 assets['/cloud.js'] = ['cloud.js', 'text/javascript'];
+assets['/history.js'] = ['history.js', 'text/javascript'];
 const server = http.createServer(async (req, res) => {
   const reply = (code, value) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(value)); };
   try {

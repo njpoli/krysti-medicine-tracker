@@ -127,3 +127,9 @@ Run all of [003_add_ibuprofen_doses.sql](./supabase/migrations/003_add_ibuprofen
 The oxycodone card counts tablets logged within the past four hours, using 1 tablet for 5 mg and 2 tablets for 10 mg. It shows the unused portion of a two-tablet tracking window and when one or two slots become available as older records leave the window. A record leaves exactly four hours after its timestamp. For example, one tablet at 8 AM and another at 10 AM leaves zero slots until noon, one at noon, and two at 2 PM, assuming no further doses. Counts never become negative; exceeding two tablets is flagged. Invalid/future records or unknown amounts prevent availability calculation.
 
 This is log arithmetic, not authorization to take medication. The original “1–2 tablets every 4 hours” instructions do not establish a split-dose rolling schedule; confirm that interpretation with the pharmacist or surgical team. The calculation depends on all actual doses being recorded. No database migration is required.
+
+## Daily history and ongoing interval tracking
+
+History displays one local calendar day at a time, starting with the newest day containing records. Use Older/Newer or the date selector to browse days. Filtering a medicine starts at its newest recorded day; background refreshes preserve the selected day. Export JSON still includes the full log, and medication timing still uses all records.
+
+Tylenol and ibuprofen continue displaying six-hour intervals after recovery day 3, per the requested tracking change. Their original discharge instructions remain visible in the dose form; the display change does not establish a new prescribed course duration. Gabapentin retains its three-night cutoff. No database migration is required.

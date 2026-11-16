@@ -45,7 +45,7 @@ test('MiraLAX does not invent a prescribed interval and accepts actual logged do
 test('calendar recovery days and three-day course cutoff', () => {
   assert.equal(recoveryDay('2026-11-12', new Date(2026, 10, 13, 1)), 2);
   assert.equal(recoveryDay('', new Date()), null);
-  const med = medicines.find(m => m.id === 'ibuprofen');
+  const med = medicines.find(m => m.id === 'gabapentin');
   assert.equal(statusFor(med, [], '2026-11-12', new Date(2026, 10, 15)).tone, 'ended');
   assert.notEqual(statusFor(med, [], '2026-11-12', new Date(2026, 10, 14)).tone, 'ended');
 });
@@ -56,6 +56,15 @@ test('latest actual dose anchors interval regardless of insertion order', () => 
   assert.equal(status.next.toISOString(), '2026-11-13T18:00:00.000Z');
   assert.equal(status.tone, 'waiting');
   assert.equal(statusFor(med, entries, '2026-11-12', new Date('2026-11-13T18:00:00Z')).tone, 'elapsed');
+});
+test('ibuprofen and Tylenol keep six-hour interval tracking after day three', () => {
+  for (const id of ['ibuprofen', 'tylenol']) {
+    const med = medicines.find(m => m.id === id);
+    const entries = [{ medicine: id, at: '2026-11-16T12:00:00.000Z' }];
+    const status = statusFor(med, entries, '2026-11-12', new Date('2026-11-16T15:00:00Z'));
+    assert.equal(status.next.toISOString(), '2026-11-16T18:00:00.000Z');
+    assert.equal(status.tone, 'waiting');
+  }
 });
 test('reject invalid doses and future timestamps', () => {
   const entry = { medicine: 'aspirin', dose: '1 tablet (325 mg)', at: new Date().toISOString(), note: '' };

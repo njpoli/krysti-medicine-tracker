@@ -13,7 +13,7 @@
     <div class="section-heading"><h2>Medicines</h2><span>Based on your supplied instructions</span></div>
     <section id="medicines" class="grid" aria-label="Medicines"></section>
     <p class="guidance">Times track elapsed intervals, not clearance to take a dose. Follow the discharge instructions. Tylenol and ibuprofen are marked to stagger; no starting times are assumed.</p>
-    <section class="timeline panel"><div class="section-heading"><div><p class="eyebrow">THE LITTLE DETAILS</p><h2>Dose history</h2></div><button id="export" class="secondary">Export JSON</button></div><label class="filter">Show medicine<select id="filter"><option value="all">All medicines</option></select></label><div id="history"></div></section>
+    <section class="timeline panel"><div class="section-heading"><div><p class="eyebrow">THE LITTLE DETAILS</p><h2>Dose history</h2></div><button id="export" class="secondary">Export JSON</button></div><label class="filter">Show medicine<select id="filter"><option value="all">All medicines</option></select></label><nav id="history-nav" class="history-nav" aria-label="History by day" hidden><button id="history-older" class="secondary" type="button">← Older</button><label>History date<select id="history-date"></select></label><button id="history-newer" class="secondary" type="button">Newer →</button></nav><p id="history-page-info" aria-live="polite"></p><div id="history"></div></section>
     </div>
     <footer>Made for a little peace of mind. <span id="storage"></span></footer>
   </main>
@@ -34,4 +34,5 @@
 </fieldset><label>Note <span>(optional)</span><textarea id="note" maxlength="500" placeholder="Anything useful to remember"></textarea></label><p id="form-error" role="alert"></p><button type="submit" id="save-dose">Save dose</button></form></dialog>
   <script type="module" src="./app.js"></script>
 </body></html>
+
 

@@ -15,7 +15,6 @@ export const medicines = [
     dose: '800 mg',
     doses: ['800 mg', '600 mg', '400 mg', '200 mg'],
     hours: 6,
-    days: 3,
     kind: 'Scheduled',
     instructions:
       'Every 6 hours for the first 3 days only. Stagger with Tylenol.',
@@ -26,7 +25,6 @@ export const medicines = [
     dose: '1 tablet · 500 mg',
     doses: ['1 tablet (500 mg)'],
     hours: 6,
-    days: 3,
     kind: 'Scheduled',
     instructions:
       'Every 6 hours for the first 3 days only. Stagger with ibuprofen.',
