@@ -100,6 +100,7 @@ function openDose(id) {
   const status = statusFor(selected, state.entries, state.start);
   $('dose-warning').textContent = status.tone === 'waiting' ? `The recorded ${selected.hours}-hour interval has not elapsed. Check the time and discharge instructions before recording another dose.` : status.tone === 'ended' ? 'The initial course has ended. Only record doses actually taken; check any continued use with the care team.' : !state.start ? 'Set your day-1 date to track the initial course.' : '';
   if (status.last && !selected.hours && new Date(status.last.at).toDateString() === new Date().toDateString()) $('dose-warning').textContent = 'A dose of this medicine is already recorded today. Check the log before adding another.';
+  if (selected.id === 'oxycodone') $('dose-warning').textContent = `${status.label}. Tracking only, not permission to take a dose. Confirm split-dose timing with the pharmacist or surgical team. Log only tablets actually taken.`;
   $('dose').innerHTML = selected.doses.map(d => `<option>${d}</option>`).join('');
   setTakenTime(new Date());
   $('form-error').textContent = '';

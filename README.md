@@ -121,3 +121,9 @@ Repeated auth events for the same user keep the current log and open forms intac
 ## Updating an existing Supabase project: lower ibuprofen doses
 
 Run all of [003_add_ibuprofen_doses.sql](./supabase/migrations/003_add_ibuprofen_doses.sql) in Supabase SQL Editor after migration 002. It allows 800 mg, 600 mg, 400 mg, and 200 mg while preserving existing history and every other medicine's allowed doses. The constraint replacement is transactional. Do not rerun older migrations afterward, as they restore older dose restrictions. New projects using the current setup script already support these doses.
+
+## Oxycodone rolling tablet log
+
+The oxycodone card counts tablets logged within the past four hours, using 1 tablet for 5 mg and 2 tablets for 10 mg. It shows the unused portion of a two-tablet tracking window and when one or two slots become available as older records leave the window. A record leaves exactly four hours after its timestamp. For example, one tablet at 8 AM and another at 10 AM leaves zero slots until noon, one at noon, and two at 2 PM, assuming no further doses. Counts never become negative; exceeding two tablets is flagged. Invalid/future records or unknown amounts prevent availability calculation.
+
+This is log arithmetic, not authorization to take medication. The original “1–2 tablets every 4 hours” instructions do not establish a split-dose rolling schedule; confirm that interpretation with the pharmacist or surgical team. The calculation depends on all actual doses being recorded. No database migration is required.

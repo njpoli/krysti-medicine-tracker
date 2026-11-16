@@ -1,6 +1,38 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { medicines, recoveryDay, statusFor, validateEntry } from '../public/medicine.js';
+import { medicines, recoveryDay, statusFor, validateEntry, oxycodoneWindow } from '../public/medicine.js';
+
+const oxyEntry = (at, dose = '1 tablet (5 mg)') => ({ medicine: 'oxycodone', at: `2026-11-16T${at}:00.000Z`, dose });
+test('rolling oxycodone count releases split doses individually at the exact boundary', () => {
+  const entries = [oxyEntry('10:00'), oxyEntry('08:00')];
+  const before = oxycodoneWindow(entries, new Date('2026-11-16T11:59:59Z'));
+  assert.equal(before.available, 0);
+  assert.deepEqual(before.upcoming.map(e => [e.at.toISOString(), e.available]), [
+    ['2026-11-16T12:00:00.000Z', 1], ['2026-11-16T14:00:00.000Z', 2]
+  ]);
+  assert.equal(oxycodoneWindow(entries, new Date('2026-11-16T12:00:00Z')).available, 1);
+  assert.equal(oxycodoneWindow(entries, new Date('2026-11-16T14:00:00Z')).available, 2);
+  assert.equal(oxycodoneWindow([], new Date()).available, 2);
+});
+test('two-tablet records and excess doses cannot release slots prematurely', () => {
+  const two = oxyEntry('08:00', '2 tablets (10 mg)');
+  assert.equal(oxycodoneWindow([two], new Date('2026-11-16T10:00:00Z')).taken, 2);
+  const over = oxycodoneWindow([oxyEntry('07:00'), two], new Date('2026-11-16T10:00:00Z'));
+  assert.equal(over.available, 0);
+  assert.equal(over.upcoming.length, 1);
+  assert.equal(over.upcoming[0].at.toISOString(), '2026-11-16T12:00:00.000Z');
+  assert.equal(over.upcoming[0].available, 2);
+  assert.match(over.label, /Above/);
+});
+test('rolling window crosses midnight and refuses unknown/future records', () => {
+  const entry = { ...oxyEntry('23:00'), at: '2026-11-15T23:00:00.000Z' };
+  assert.equal(oxycodoneWindow([entry], new Date('2026-11-16T02:00:00Z')).available, 1);
+  assert.equal(oxycodoneWindow([entry], new Date('2026-11-16T03:00:00Z')).available, 2);
+  assert.equal(oxycodoneWindow([oxyEntry('12:00')], new Date('2026-11-16T10:00:00Z')).available, null);
+  assert.equal(oxycodoneWindow([{ ...entry, dose: 'unknown' }], new Date()).available, null);
+  const med = medicines.find(m => m.id === 'oxycodone');
+  assert.equal(statusFor(med, [], '', new Date()).available, 2);
+});
 test('MiraLAX does not invent a prescribed interval and accepts actual logged dose', () => {
   const med = medicines.find(m => m.id === 'miralax');
   const entry = { medicine: med.id, dose: '17 g', at: new Date().toISOString(), note: '' };

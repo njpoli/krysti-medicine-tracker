@@ -113,6 +113,7 @@ export function statusFor(med, entries, start, now = new Date()) {
     .filter((e) => e.medicine === med.id)
     .sort((a, b) => b.at.localeCompare(a.at))[0];
   const day = recoveryDay(start, now);
+  if (med.id === 'oxycodone') return { last, ...oxycodoneWindow(entries, now) };
   if (med.scheduleUnconfirmed)
     return {
       last,
@@ -143,6 +144,36 @@ export function statusFor(med, entries, start, now = new Date()) {
       : `Interval ends ${next.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
     tone: elapsed ? 'elapsed' : 'waiting',
   };
+}
+export function oxycodoneWindow(entries, now = new Date()) {
+  const cutoff = now.getTime() - 4 * 3600000;
+  const relevant = entries.filter(e => e.medicine === 'oxycodone');
+  const counts = { '1 tablet (5 mg)': 1, '2 tablets (10 mg)': 2 };
+  if (relevant.some(e => !Number.isFinite(Date.parse(e.at)) || Date.parse(e.at) > now.getTime() || !counts[e.dose])) {
+    return { label: 'Check dose history: unknown amount or invalid/future time', tone: 'waiting', available: null };
+  }
+  const active = relevant.filter(e => Date.parse(e.at) > cutoff)
+    .sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  const taken = active.reduce((total, e) => total + counts[e.dose], 0);
+  const available = Math.max(0, 2 - taken);
+  const releases = new Map();
+  for (const entry of active) {
+    const time = Date.parse(entry.at) + 4 * 3600000;
+    releases.set(time, (releases.get(time) || 0) + counts[entry.dose]);
+  }
+  let remaining = taken, previous = available;
+  const upcoming = [];
+  for (const [time, count] of releases) {
+    remaining -= count;
+    const slots = Math.max(0, 2 - remaining);
+    if (slots > previous) upcoming.push({ at: new Date(time), available: slots });
+    previous = slots;
+  }
+  const format = date => date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const label = `${available} of 2 tablets remaining in rolling 4-hour log · ${taken} logged` +
+    (taken > 2 ? ' · Above the 2-tablet tracking limit' : '') +
+    upcoming.map(item => ` · ${item.available} remaining at ${format(item.at)}`).join('');
+  return { label, tone: taken >= 2 ? 'waiting' : '', taken, available, upcoming };
 }
 export function validateEntry(entry) {
   const med = medicines.find((m) => m.id === entry?.medicine);
